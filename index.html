@@ -116,71 +116,79 @@
             height: 80%;
             border-radius: 50%;
             cursor: pointer;
-            transition: bottom 0.3s ease-in-out;
+            transition: bottom 0.3s ease-in-out, transform 0.1s;
             border: 2px solid #333;
+            background-color: #333;
         }
         .gimbap.up {
             bottom: 5%;
         }
         
-        .gimbap.normal {
-            background-color: #333;
-        }
-        .gimbap.normal::before {
+        .gimbap::before {
             content: '';
             position: absolute;
             width: 70%;
             height: 70%;
-            background-color: #fff;
             border-radius: 50%;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        .gimbap.cheese {
+        
+        /* 김밥 재료별 색상 */
+        .gimbap.normal::before { background-color: #fff; }
+        .gimbap.cheese::before { background-color: #fce883; }
+        .gimbap.kimchi::before { background-color: #e02121; }
+        .gimbap.beef::before { background-color: #a45a52; }
+
+        /* 김밥 표정 */
+        .gimbap .eye {
+            width: 8px;
+            height: 8px;
             background-color: #333;
-            animation: glow-cheese 0.5s infinite alternate;
-        }
-        .gimbap.cheese::before {
-            content: '';
-            position: absolute;
-            width: 70%;
-            height: 70%;
-            background-color: #fce883; /* 치즈색 */
             border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            position: absolute;
+            top: 30%;
+            z-index: 1;
+            transition: all 0.2s;
         }
-        .gimbap.kimchi {
+        .gimbap .eye.left { left: 25%; }
+        .gimbap .eye.right { right: 25%; }
+        .gimbap .mouth {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            width: 20px;
+            height: 5px;
             background-color: #333;
-            animation: glow-kimchi 0.5s infinite alternate;
+            border-radius: 0 0 5px 5px;
+            transform: translateX(-50%);
+            transition: all 0.2s;
+            z-index: 1;
         }
-        .gimbap.kimchi::before {
-            content: '';
-            position: absolute;
-            width: 70%;
-            height: 70%;
-            background-color: #e02121; /* 김치색 */
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+
+        /* 웃는 표정 (기본) */
+        .gimbap.smile .mouth {
+            height: 8px;
+            border-radius: 0 0 20px 20px;
+            border: 2px solid #333;
+            background-color: transparent;
+            border-top: none;
+            bottom: 25%;
         }
-        .gimbap.beef {
+        /* 놀란 표정 */
+        .gimbap.surprised .eye {
+            width: 12px;
+            height: 12px;
+            top: 25%;
+            transform: translateY(-2px);
+        }
+        .gimbap.surprised .mouth {
+            width: 10px;
+            height: 10px;
             background-color: #333;
-            animation: glow-beef 0.5s infinite alternate;
-        }
-        .gimbap.beef::before {
-            content: '';
-            position: absolute;
-            width: 70%;
-            height: 70%;
-            background-color: #a45a52; /* 소고기색 */
             border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            bottom: 25%;
         }
 
         /* 스페셜 김밥 빛 효과 */
@@ -196,6 +204,9 @@
             from { box-shadow: 0 0 5px 2px #a45a52; }
             to { box-shadow: 0 0 20px 5px #a45a52; }
         }
+        .gimbap.cheese { animation: glow-cheese 0.5s infinite alternate; }
+        .gimbap.kimchi { animation: glow-kimchi 0.5s infinite alternate; }
+        .gimbap.beef { animation: glow-beef 0.5s infinite alternate; }
 
         #start-screen, #end-screen {
             position: absolute;
@@ -299,9 +310,19 @@
                 hole.dataset.index = i;
                 
                 const gimbap = document.createElement('div');
-                gimbap.classList.add('gimbap');
-                gimbap.addEventListener('click', whack);
+                gimbap.classList.add('gimbap', 'smile');
                 
+                const eyeLeft = document.createElement('div');
+                eyeLeft.classList.add('eye', 'left');
+                const eyeRight = document.createElement('div');
+                eyeRight.classList.add('eye', 'right');
+                const mouth = document.createElement('div');
+                mouth.classList.add('mouth');
+
+                gimbap.appendChild(eyeLeft);
+                gimbap.appendChild(eyeRight);
+                gimbap.appendChild(mouth);
+
                 hole.appendChild(gimbap);
                 gameContainer.appendChild(hole);
             }
@@ -309,6 +330,10 @@
         createHoles();
 
         const holes = document.querySelectorAll('.hole');
+        const gimbaps = document.querySelectorAll('.gimbap');
+
+        gimbaps.forEach(gimbap => gimbap.addEventListener('click', whack));
+
 
         function randomTime(min, max) {
             return Math.round(Math.random() * (max - min) + min);
@@ -341,7 +366,8 @@
             const hole = randomHole(holes);
             const gimbap = hole.querySelector('.gimbap');
             
-            gimbap.classList.remove('normal', 'cheese', 'kimchi', 'beef');
+            gimbap.classList.remove('normal', 'cheese', 'kimchi', 'beef', 'surprised');
+            gimbap.classList.add('smile');
             
             const gimbapType = chooseRandomGimbapType();
             lastGimbapType = gimbapType;
@@ -389,7 +415,18 @@
         }
 
         function whack(e) {
-            if (!gameRunning || !e.target.classList.contains('up')) return;
+            const gimbap = e.target.closest('.gimbap');
+            if (!gimbap) return;
+
+            if (!gameRunning || !gimbap.classList.contains('up')) return;
+            
+            gimbap.classList.remove('smile');
+            gimbap.classList.add('surprised');
+
+            setTimeout(() => {
+                gimbap.classList.remove('surprised');
+                gimbap.classList.add('smile');
+            }, 300);
 
             const gimbapType = lastGimbapType;
             
@@ -406,7 +443,7 @@
             }
 
             scoreDisplay.textContent = score;
-            e.target.classList.remove('up');
+            gimbap.classList.remove('up');
         }
 
         startButton.addEventListener('click', startGame);

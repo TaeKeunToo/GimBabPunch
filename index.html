@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김밥 잡기 게임</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            user-select: none;
+            text-align: center;
+        }
+        #game-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            width: 90%;
+            max-width: 900px;
+        }
+        #menu-board {
+            background-color: #fff;
+            border: 5px solid #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            min-width: 200px;
+        }
+        #menu-board h3 {
+            font-size: 1.8em;
+            margin-top: 0;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .menu-item .gimbap-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            margin-right: 10px;
+            position: relative;
+        }
+        .menu-item .gimbap-icon::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background-color: #fff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .gimbap-icon.normal::before { background-color: #fff; }
+        .gimbap-icon.cheese::before { background-color: #fce883; }
+        .gimbap-icon.kimchi::before { background-color: #e02121; }
+        .gimbap-icon.beef::before { background-color: #a45a52; }
+
+        #game-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+        }
+        #game-title {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        #game-info {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 10px;
+            width: 80vmin;
+            height: 60vmin;
+            max-width: 600px;
+            max-height: 400px;
+            border: 5px solid #333;
+            background-color: #8B4513;
+            padding: 20px;
+            box-sizing: content-box;
+            position: relative;
+        }
+        .hole {
+            width: 100%;
+            height: 100%;
+            background-color: #5C3A21;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+        .gimbap {
+            position: absolute;
+            bottom: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: bottom 0.3s ease-in-out;
+            border: 2px solid #333;
+        }
+        .gimbap.up {
+            bottom: 5%;
+        }
+        
+        .gimbap.normal {
+            background-color: #333;
+        }
+        .gimbap.normal::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background-color: #fff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .gimbap.cheese {
+            background-color: #333;
+            animation: glow-cheese 0.5s infinite alternate;
+        }
+        .gimbap.cheese::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background-color: #fce883; /* 치즈색 */
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .gimbap.kimchi {
+            background-color: #333;
+            animation: glow-kimchi 0.5s infinite alternate;
+        }
+        .gimbap.kimchi::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background-color: #e02121; /* 김치색 */
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .gimbap.beef {
+            background-color: #333;
+            animation: glow-beef 0.5s infinite alternate;
+        }
+        .gimbap.beef::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background-color: #a45a52; /* 소고기색 */
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 스페셜 김밥 빛 효과 */
+        @keyframes glow-cheese {
+            from { box-shadow: 0 0 5px 2px #fce883; }
+            to { box-shadow: 0 0 20px 5px #fce883; }
+        }
+        @keyframes glow-kimchi {
+            from { box-shadow: 0 0 5px 2px #e02121; }
+            to { box-shadow: 0 0 20px 5px #e02121; }
+        }
+        @keyframes glow-beef {
+            from { box-shadow: 0 0 5px 2px #a45a52; }
+            to { box-shadow: 0 0 20px 5px #a45a52; }
+        }
+
+        #start-screen, #end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 20;
+        }
+        #start-screen h2, #end-screen h2 { font-size: 2.5em; }
+        #start-screen p, #end-screen p { font-size: 1.2em; }
+        #start-screen button, #end-screen button {
+            padding: 10px 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-wrapper">
+        <div id="menu-board">
+            <h3>메뉴표</h3>
+            <div class="menu-item">
+                <div class="gimbap-icon normal"></div>
+                <span>야채김밥: **10점**</span>
+            </div>
+            <div class="menu-item">
+                <div class="gimbap-icon cheese"></div>
+                <span>치즈김밥: **점수 2배**</span>
+            </div>
+            <div class="menu-item">
+                <div class="gimbap-icon kimchi"></div>
+                <span>김치김밥: **+20점**</span>
+            </div>
+            <div class="menu-item">
+                <div class="gimbap-icon beef"></div>
+                <span>소고기김밥: **시간 +5초**</span>
+            </div>
+        </div>
+        <div id="game-main">
+            <h1 id="game-title">김밥 잡기 게임</h1>
+            <div id="game-info">
+                <span>점수: <span id="score-display">0</span></span>
+                <span>남은 시간: <span id="time-display">30</span>s</span>
+            </div>
+            <div id="game-container">
+                <div id="start-screen">
+                    <h2>김밥을 잡아라!</h2>
+                    <p>제한 시간 30초 안에 최대한 많은 김밥을 잡아보세요!</p>
+                    <p>스페셜 김밥을 잡으면 더 좋은 일이!</p>
+                    <button id="startButton">게임 시작</button>
+                </div>
+                <div id="end-screen" style="display:none;">
+                    <h2 id="end-title">게임 오버!</h2>
+                    <p>최종 점수: <span id="final-score">0</span>점</p>
+                    <button id="restartButton">다시 시작</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const timeDisplay = document.getElementById('time-display');
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('startButton');
+        const endScreen = document.getElementById('end-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restartButton');
+
+        let score = 0;
+        let time = 30;
+        let timerId;
+        let gameRunning = false;
+        let lastHole;
+        let lastGimbapType;
+
+        const gimbapTypes = [
+            { type: 'normal', score: 10, probability: 0.7 },
+            { type: 'cheese', score: 10, probability: 0.1 },
+            { type: 'kimchi', score: 10, probability: 0.1 },
+            { type: 'beef', score: 10, probability: 0.1 }
+        ];
+
+        function createHoles() {
+            for (let i = 0; i < 10; i++) {
+                const hole = document.createElement('div');
+                hole.classList.add('hole');
+                hole.dataset.index = i;
+                
+                const gimbap = document.createElement('div');
+                gimbap.classList.add('gimbap');
+                gimbap.addEventListener('click', whack);
+                
+                hole.appendChild(gimbap);
+                gameContainer.appendChild(hole);
+            }
+        }
+        createHoles();
+
+        const holes = document.querySelectorAll('.hole');
+
+        function randomTime(min, max) {
+            return Math.round(Math.random() * (max - min) + min);
+        }
+
+        function randomHole(holes) {
+            const index = Math.floor(Math.random() * holes.length);
+            const hole = holes[index];
+            if (hole === lastHole) {
+                return randomHole(holes);
+            }
+            lastHole = hole;
+            return hole;
+        }
+
+        function chooseRandomGimbapType() {
+            const totalProbability = gimbapTypes.reduce((sum, type) => sum + type.probability, 0);
+            let random = Math.random() * totalProbability;
+
+            for (const type of gimbapTypes) {
+                random -= type.probability;
+                if (random <= 0) {
+                    return type;
+                }
+            }
+            return gimbapTypes[0];
+        }
+
+        function up() {
+            const hole = randomHole(holes);
+            const gimbap = hole.querySelector('.gimbap');
+            
+            gimbap.classList.remove('normal', 'cheese', 'kimchi', 'beef');
+            
+            const gimbapType = chooseRandomGimbapType();
+            lastGimbapType = gimbapType;
+            gimbap.classList.add(gimbapType.type, 'up');
+
+            const timeToUp = randomTime(500, 1500);
+            setTimeout(() => {
+                gimbap.classList.remove('up');
+                if (gameRunning) {
+                    up();
+                }
+            }, timeToUp);
+        }
+
+        function startGame() {
+            if (gameRunning) return;
+            gameRunning = true;
+            
+            score = 0;
+            time = 30;
+            scoreDisplay.textContent = score;
+            timeDisplay.textContent = time;
+
+            startScreen.style.display = 'none';
+            endScreen.style.display = 'none';
+
+            up();
+            timerId = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            time--;
+            timeDisplay.textContent = time;
+
+            if (time <= 0) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameRunning = false;
+            clearInterval(timerId);
+            finalScoreDisplay.textContent = score;
+            endScreen.style.display = 'flex';
+        }
+
+        function whack(e) {
+            if (!gameRunning || !e.target.classList.contains('up')) return;
+
+            const gimbapType = lastGimbapType;
+            
+            if (gimbapType.type === 'cheese') {
+                score += gimbapType.score * 2;
+            } else if (gimbapType.type === 'kimchi') {
+                score += gimbapType.score + 20;
+            } else if (gimbapType.type === 'beef') {
+                score += gimbapType.score;
+                time += 5;
+                timeDisplay.textContent = time;
+            } else {
+                score += gimbapType.score;
+            }
+
+            scoreDisplay.textContent = score;
+            e.target.classList.remove('up');
+        }
+
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
+    </script>
+</body>
+</html>

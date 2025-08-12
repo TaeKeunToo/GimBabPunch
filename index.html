@@ -63,8 +63,9 @@
             transform: translate(-50%, -50%);
         }
         .gimbap-icon.normal::before { background-color: #fff; }
+        .gimbap-icon.cucumber::before { background-color: #90EE90; }
         .gimbap-icon.cheese::before { background-color: #fce883; }
-        .gimbap-icon.kimchi::before { background-color: #e02121; }
+        .gimbap-icon.spicykimchi::before { background-color: #FF4500; }
         .gimbap-icon.beef::before { background-color: #a45a52; }
 
         #game-main {
@@ -111,9 +112,9 @@
             position: absolute;
             bottom: -100%;
             left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 80%;
+            transform: translateX(-50%) scale(0.8); /* 크기 조정 추가 */
+            width: 100%; /* 너비를 100%로 변경 */
+            height: 100%; /* 높이를 100%로 변경 */
             border-radius: 50%;
             cursor: pointer;
             transition: bottom 0.3s ease-in-out, transform 0.1s;
@@ -123,7 +124,7 @@
         .gimbap.up {
             bottom: 5%;
         }
-        
+
         .gimbap::before {
             content: '';
             position: absolute;
@@ -134,11 +135,12 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        
+
         /* 김밥 재료별 색상 */
         .gimbap.normal::before { background-color: #fff; }
+        .gimbap.cucumber::before { background-color: #90EE90; }
         .gimbap.cheese::before { background-color: #fce883; }
-        .gimbap.kimchi::before { background-color: #e02121; }
+        .gimbap.spicykimchi::before { background-color: #FF4500; }
         .gimbap.beef::before { background-color: #a45a52; }
 
         /* 김밥 표정 */
@@ -196,16 +198,16 @@
             from { box-shadow: 0 0 5px 2px #fce883; }
             to { box-shadow: 0 0 20px 5px #fce883; }
         }
-        @keyframes glow-kimchi {
-            from { box-shadow: 0 0 5px 2px #e02121; }
-            to { box-shadow: 0 0 20px 5px #e02121; }
+        @keyframes glow-spicykimchi {
+            from { box-shadow: 0 0 5px 2px #FF4500; }
+            to { box-shadow: 0 0 20px 5px #FF4500; }
         }
         @keyframes glow-beef {
             from { box-shadow: 0 0 5px 2px #a45a52; }
             to { box-shadow: 0 0 20px 5px #a45a52; }
         }
         .gimbap.cheese { animation: glow-cheese 0.5s infinite alternate; }
-        .gimbap.kimchi { animation: glow-kimchi 0.5s infinite alternate; }
+        .gimbap.spicykimchi { animation: glow-spicykimchi 0.5s infinite alternate; }
         .gimbap.beef { animation: glow-beef 0.5s infinite alternate; }
 
         #start-screen, #end-screen {
@@ -242,19 +244,23 @@
             <h3>메뉴표</h3>
             <div class="menu-item">
                 <div class="gimbap-icon normal"></div>
-                <span>야채김밥: **10점**</span>
+                <span>일반 김밥: **10점**</span>
+            </div>
+            <div class="menu-item">
+                <div class="gimbap-icon cucumber"></div>
+                <span>오이 김밥: **+20점**</span>
             </div>
             <div class="menu-item">
                 <div class="gimbap-icon cheese"></div>
-                <span>치즈김밥: **점수 2배**</span>
+                <span>치즈 김밥: **30점**</span>
             </div>
             <div class="menu-item">
-                <div class="gimbap-icon kimchi"></div>
-                <span>김치김밥: **+20점**</span>
+                <div class="gimbap-icon spicykimchi"></div>
+                <span>매운 김치 김밥: **-10점**</span>
             </div>
             <div class="menu-item">
                 <div class="gimbap-icon beef"></div>
-                <span>소고기김밥: **시간 +5초**</span>
+                <span>소고기 김밥: **시간 +5초**</span>
             </div>
         </div>
         <div id="game-main">
@@ -267,7 +273,7 @@
                 <div id="start-screen">
                     <h2>김밥을 잡아라!</h2>
                     <p>제한 시간 30초 안에 최대한 많은 김밥을 잡아보세요!</p>
-                    <p>스페셜 김밥을 잡으면 더 좋은 일이!</p>
+                    <p>조심하세요! 매운 김치 김밥은 점수가 깎입니다!</p>
                     <button id="startButton">게임 시작</button>
                 </div>
                 <div id="end-screen" style="display:none;">
@@ -297,10 +303,11 @@
         let lastGimbapType;
 
         const gimbapTypes = [
-            { type: 'normal', score: 10, probability: 0.7 },
-            { type: 'cheese', score: 10, probability: 0.1 },
-            { type: 'kimchi', score: 10, probability: 0.1 },
-            { type: 'beef', score: 10, probability: 0.1 }
+            { type: 'normal', score: 10, probability: 0.5 },
+            { type: 'cucumber', score: 20, probability: 0.15 },
+            { type: 'cheese', score: 30, probability: 0.15 },
+            { type: 'spicykimchi', score: -10, probability: 0.1 },
+            { type: 'beef', score: 10, timeEffect: 5, probability: 0.1 }
         ];
 
         function createHoles() {
@@ -366,7 +373,7 @@
             const hole = randomHole(holes);
             const gimbap = hole.querySelector('.gimbap');
             
-            gimbap.classList.remove('normal', 'cheese', 'kimchi', 'beef', 'surprised');
+            gimbap.classList.remove('normal', 'cucumber', 'cheese', 'spicykimchi', 'beef', 'surprised');
             gimbap.classList.add('smile');
             
             const gimbapType = chooseRandomGimbapType();
@@ -428,21 +435,21 @@
                 gimbap.classList.add('smile');
             }, 300);
 
-            const gimbapType = lastGimbapType;
+            const gimbapType = gimbapTypes.find(type => gimbap.classList.contains(type.type));
             
-            if (gimbapType.type === 'cheese') {
-                score += gimbapType.score * 2;
-            } else if (gimbapType.type === 'kimchi') {
-                score += gimbapType.score + 20;
-            } else if (gimbapType.type === 'beef') {
-                score += gimbapType.score;
-                time += 5;
-                timeDisplay.textContent = time;
-            } else {
-                score += gimbapType.score;
+            if (gimbapType) {
+                if (gimbapType.type === 'beef') {
+                    score += gimbapType.score;
+                    time += gimbapType.timeEffect;
+                } else if (gimbapType.type === 'spicykimchi') {
+                    score += gimbapType.score;
+                } else {
+                    score += gimbapType.score;
+                }
             }
 
             scoreDisplay.textContent = score;
+            timeDisplay.textContent = time;
             gimbap.classList.remove('up');
         }
 
